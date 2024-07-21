@@ -1,0 +1,53 @@
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+import matplotlib.pyplot as plt
+
+# # Sample data creation for demonstration (remove this section if you have the actual data)
+# np.random.seed(0)
+# df = pd.DataFrame({
+#     'field1': np.random.normal(size=100),
+#     'field2': np.random.normal(size=100),
+#     'field1': np.random.normal(size=100),
+#     'field4': np.random.normal(size=100),
+#     'field5': np.random.normal(size=100),
+# })
+
+
+# One-hot encoding of categorical variables
+routes_cover_s1_encoded = pd.get_dummies(routes_cover_s1, columns=['field3', 'field4'], drop_first=True)
+
+# Define the model formula
+# Note: The categorical variables are now 'field3', 'field4' after one-hot encoding
+formula = 'field1 ~ field2 + field3 + field4 + field5'
+
+# Fit the model
+model = smf.glm(formula=formula, data=routes_cover_s1_encoded, family=sm.families.Gaussian()) # can be any other family
+result = model.fit()
+
+# Print the summary
+print(result.summary())
+
+# Calculate McFadden's pseudo R-squared
+llf = result.llf  # Log-likelihood of the fitted model
+llnull = result.llnull  # Log-likelihood of the null model
+pseudo_r2 = 1 - llf / llnull
+
+# Predict the values
+df_encoded['predicted'] = result.predict(df)
+
+# Plot the actual vs. predicted values
+plt.figure(figsize=(10, 6))
+plt.scatter(df_encoded['field5'], df_encoded['field5'], color='blue', label='Actual Values')
+plt.scatter(df_encoded['field5'], df_encoded['predicted'], color='red', label='Predicted Values')
+plt.xlabel('Actual field5 value')
+plt.ylabel('Predicted field5 value')
+plt.legend()
+
+# Add R-squared to the plot
+plt.text(0.05, 0.95, f'McFadden\'s R-squared: {pseudo_r2:.4f}', transform=plt.gca().transAxes, 
+         fontsize=12, verticalalignment='top', horizontalalignment='left')
+
+plt.title('GLM Poisson Regression: Actual vs Predicted Values with R-squared')
+plt.show()
