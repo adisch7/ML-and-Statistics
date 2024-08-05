@@ -1,0 +1,50 @@
+import pandas as pd
+import statsmodels.api as sm
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Assuming routes_cover_s1 is your DataFrame
+# routes_cover_s1 = pd.read_csv('your_file.csv')  # Load your DataFrame if it's not already in memory
+
+# List of Y columns
+y_columns = ['TreesCover','BuildingsCover', 'BusinessCover', 'CemeteryCover', 'IndustrialCover', 
+             'InfrastructureCover', 'ParksCover', 'PublicInstitutionCover', 'ResidenceCover', 'SportsCover']
+
+# Number of subplots
+num_plots = len(y_columns)
+
+# Create subplots
+fig, axes = plt.subplots(nrows=2, ncols=5, figsize=(20, 10))
+
+# Flatten axes array for easy iteration
+axes = axes.flatten()
+
+# Iterate through each Y column and create a plot
+for i, y_col in enumerate(y_columns):
+    X = routes_cover_s1['lux_log10']
+    Y = routes_cover_s1[y_col]
+    
+    # Add a constant to the independent variable (required by statsmodels)
+    X_const = sm.add_constant(X)
+    
+    # Fit the regression model
+    model = sm.OLS(Y, X_const).fit()
+    
+    # Get the R-squared value
+    r_squared = model.rsquared
+    
+    # Create the plot
+    sns.regplot(x='lux_log10', y=y_col, data=routes_cover_s1, scatter_kws={'alpha':0.5}, line_kws={'color': 'red'}, ax=axes[i])
+    axes[i].set_title(f'Correlation ({y_col})')
+    axes[i].set_xlabel('lux_log10')
+    axes[i].set_ylabel(y_col)
+    axes[i].text(0.05, 0.95, f'R^2: {r_squared:.4f}', transform=axes[i].transAxes, 
+                 fontsize=12, verticalalignment='top', bbox=dict(boxstyle='round,pad=0.5', edgecolor='black', facecolor='white'))
+
+# Hide any unused subplots
+for j in range(i+1, len(axes)):
+    fig.delaxes(axes[j])
+
+plt.tight_layout()
+plt.show()
+
