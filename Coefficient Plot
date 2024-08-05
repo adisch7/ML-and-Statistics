@@ -1,0 +1,189 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import numpy as np
+from scipy import stats
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+import statsmodels.genmod as gm
+
+'''First Version'''
+# # Read the CSV file
+# coefficient_df2 = pd.read_csv(r'C:\Users\Adi\Downloads\R table2 for Noam.csv')
+
+# # Convert specified columns to numeric, coercing errors to NaN
+# columns_to_convert = ['S1', 'S2+S4', 'S3+S5']
+# coefficient_df2[columns_to_convert] = coefficient_df2[columns_to_convert].apply(pd.to_numeric, errors='coerce')
+
+# # Define the new index
+# new_index = [
+#     'TreesCover', 'BuildingsCover', 'BusinessCover', 'CemeteryCover', 'IndustrialCover', 'InfrastructureCover', 
+#     'ParksCover', 'PublicInstitutionCover', 'ResidenceCover', 'SportsCover', 'NearestJlmPoleDistance', 
+#     'Classification_HPS', 'Classification_LED', 'RoadsHierarchy_motorway', 'RoadsHierarchy_primary', 
+#     'RoadsHierarchy_residential', 'RoadsHierarchy_secondary', 'RoadsHierarchy_tertiary', 'RoadsHierarchy_trunk'
+# ]
+
+# # Ensure the length of the new index matches the number of rows in the DataFrame
+# if len(new_index) != len(coefficient_df2):
+#     raise ValueError("The length of the new index does not match the number of rows in the DataFrame.")
+
+# # Create the DataFrame with the new index
+# _df = pd.DataFrame(coefficient_df2[columns_to_convert].values, columns=columns_to_convert, index=new_index)
+
+# # Define custom colors for each column
+# colors = ['#FF5733', '#33FF57', '#3357FF']  # Example colors for S1, S2+S4, S3+S5
+
+# # Plot the DataFrame as a horizontal bar chart with custom colors
+# ax = _df.plot.barh(color=colors)
+
+# # Set x-axis limits to zoom in on values between -1 and 1
+# plt.xlim(-1, 1)
+
+# # Create custom legend handles
+# legend_labels = ['S1: R^2 = 0.1807', 'S2+S4: R^2 = 0.2551', 'S3+S5: R^2 = 0.1979']
+# handles = [mpatches.Patch(color=colors[i], label=legend_labels[i]) for i in range(len(legend_labels))]
+
+# # Customize the legend with a smaller font size
+# ax.legend(handles=handles, fontsize='small')
+
+# # Add labels from the specified columns to each bar
+# mark_columns = ['Mark S1', 'Mark S2+S4', 'Mark S3+S5']
+# for i, col in enumerate(columns_to_convert):
+#     container = ax.containers[i]
+#     labels = coefficient_df2[mark_columns[i]].fillna('').tolist()
+#     ax.bar_label(container, labels=labels, padding=3, color='black', fontsize=10)
+
+# # Display the plot
+# plt.title('GLM Coefficient Plot')
+# plt.xlabel('Coefficient')
+# plt.ylabel('Variable')
+# plt.tight_layout()  # Adjust the layout to make sure everything fits well
+# plt.show()
+
+'''Second Version'''
+# # Read the CSV file
+# coefficient_df2 = pd.read_csv(r'C:\Users\Adi\Downloads\R table2 for Noam.csv')
+
+# # Convert specified columns to numeric, coercing errors to NaN
+# columns_to_convert = ['S1', 'S2+S4', 'S3+S5']
+# coefficient_df2[columns_to_convert] = coefficient_df2[columns_to_convert].apply(pd.to_numeric, errors='coerce')
+
+# # Define the new index
+# new_index = [
+#     'TreesCover', 'BuildingsCover', 'BusinessCover', 'CemeteryCover', 'IndustrialCover', 'InfrastructureCover', 
+#     'ParksCover', 'PublicInstitutionCover', 'ResidenceCover', 'SportsCover', 'NearestJlmPoleDistance', 
+#     'Classification_HPS', 'Classification_LED', 'RoadsHierarchy_motorway', 'RoadsHierarchy_primary', 
+#     'RoadsHierarchy_residential', 'RoadsHierarchy_secondary', 'RoadsHierarchy_tertiary', 'RoadsHierarchy_trunk'
+# ]
+
+# # Ensure the length of the new index matches the number of rows in the DataFrame
+# if len(new_index) != len(coefficient_df2):
+#     raise ValueError("The length of the new index does not match the number of rows in the DataFrame.")
+
+# # Create the DataFrame with the new index
+# _df = pd.DataFrame(coefficient_df2[columns_to_convert].values, columns=columns_to_convert, index=new_index)
+
+# # Define custom colors for each column
+# colors = ['#FF5733', '#33FF57', '#3357FF']  # Example colors for S1, S2+S4, S3+S5
+
+# # Plot the DataFrame as a horizontal bar chart with custom colors
+# ax = _df.plot.barh(color=colors)
+
+# # Set x-axis limits to zoom in on values between -1 and 1
+# plt.xlim(-1, 1)
+
+# # Create custom legend handles
+# legend_labels = ['S1: R^2 = 0.1807', 'S2+S4: R^2 = 0.2551', 'S3+S5: R^2 = 0.1979']
+# handles = [mpatches.Patch(color=colors[i], label=legend_labels[i]) for i in range(len(legend_labels))]
+
+# # Customize the legend with a smaller font size
+# ax.legend(handles=handles, fontsize='x-small')
+
+# # Add labels from the specified columns to each bar
+# mark_columns = ['Mark S1', 'Mark S2+S4', 'Mark S3+S5']
+# for i, col in enumerate(columns_to_convert):
+#     for bar, label in zip(ax.containers[i], coefficient_df2[mark_columns[i]].fillna('')):
+#         width = bar.get_width()
+#         if width < -1:
+#             ax.text(-1.1, bar.get_y() + bar.get_height() / 2, label, va='center', ha='right', fontsize=10, color='black')
+#         elif width > 1:
+#             ax.text(1.1, bar.get_y() + bar.get_height() / 2, label, va='center', ha='left', fontsize=10, color='black')
+#         else:
+#             ax.text(width, bar.get_y() + bar.get_height() / 2, label, va='center', ha='left' if width < 0 else 'right', fontsize=10, color='black')
+
+# # Display the plot
+# plt.title('GLM Coefficient Plot')
+# plt.xlabel('Coefficient')
+# plt.ylabel('Variable')
+# plt.tight_layout()  # Adjust the layout to make sure everything fits well
+# plt.show()
+
+'''Third Version'''
+
+# Read the CSV file
+coefficient_df2 = pd.read_csv(r'C:\Users\Adi\Downloads\R table2 for Noam.csv')
+
+# Convert specified columns to numeric, coercing errors to NaN
+columns_to_convert = ['S1', 'S2+S4', 'S3+S5']
+coefficient_df2[columns_to_convert] = coefficient_df2[columns_to_convert].apply(pd.to_numeric, errors='coerce')
+
+# Define the new index
+new_index = [
+    'TreesCover      ', 'BuildingsCover      ', 'BusinessCover      ', 'CemeteryCover      ', 'IndustrialCover      ', 'InfrastructureCover      ', 
+    'ParksCover      ', 'PublicInstitutionCover      ', 'ResidenceCover      ', 'SportsCover      ', 'NearestJlmPoleDistance      ', 
+    'Classification_HPS      ', 'Classification_LED      ', 'RoadsHierarchy_motorway      ', 'RoadsHierarchy_primary      ', 
+    'RoadsHierarchy_residential      ', 'RoadsHierarchy_secondary      ', 'RoadsHierarchy_tertiary      ', 'RoadsHierarchy_trunk      '
+]
+
+# Ensure the length of the new index matches the number of rows in the DataFrame
+if len(new_index) != len(coefficient_df2):
+    raise ValueError("The length of the new index does not match the number of rows in the DataFrame.")
+
+# Create the DataFrame with the new index
+_df = pd.DataFrame(coefficient_df2[columns_to_convert].values, columns=columns_to_convert, index=new_index)
+
+# Define custom colors for each column
+colors = ['#bc9b3c', '#e3f54d', '#27e89c']  # Example colors for S1, S2+S4, S3+S5
+
+# Create a figure and axis
+fig, ax = plt.subplots()
+
+# Plot the DataFrame as a horizontal bar chart with custom colors
+_df.plot.barh(color=colors, ax=ax)
+
+# Set x-axis limits to zoom in on values between -1 and 1
+plt.xlim(-1, 1)
+
+# Create custom legend handles
+legend_labels = ['S1: R^2 = 0.1807', 'S2+S4: R^2 = 0.2551', 'S3+S5: R^2 = 0.1979']
+handles = [mpatches.Patch(color=colors[i], label=legend_labels[i]) for i in range(len(legend_labels))]
+
+# Customize the legend with a smaller font size, remove the background, and place it at the top-left corner
+legend = ax.legend(handles=handles, fontsize='x-small', loc='upper left', frameon=False)
+
+# Add labels from the specified columns to each bar
+mark_columns = ['Mark S1', 'Mark S2+S4', 'Mark S3+S5']
+for i, col in enumerate(columns_to_convert):
+    for bar, label in zip(ax.containers[i], coefficient_df2[mark_columns[i]].fillna('')):
+        width = bar.get_width()
+        if width < -1:
+            ax.text(-1.1, bar.get_y() + bar.get_height() / 2, label, va='center', ha='right', fontsize=10, color='black')
+        elif width > 1:
+            ax.text(1.1, bar.get_y() + bar.get_height() / 2, label, va='center', ha='left', fontsize=10, color='black')
+        else:
+            ax.text(width, bar.get_y() + bar.get_height() / 2, label, va='center', ha='left' if width < 0 else 'right', fontsize=10, color='black')
+
+# Adjust y-axis labels to add extra spacing
+ax.set_yticks(range(len(new_index)))
+ax.set_yticklabels([f'{label} ' for label in new_index], fontsize=8, va='center')
+
+# Display the plot
+plt.title('GLM Coefficient Plot')
+plt.xlabel('Coefficient (exponential)')
+plt.ylabel('Variable')
+plt.tight_layout()  # Adjust the layout to make sure everything fits well
+plt.show()
