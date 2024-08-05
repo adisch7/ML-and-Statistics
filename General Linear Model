@@ -1,29 +1,46 @@
-import numpy as np
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import numpy as np
+from scipy import stats
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
-import matplotlib.pyplot as plt
+import statsmodels.genmod as gm
+
+'''Multiple regression S1-Up'''
 
 # # Sample data creation for demonstration (remove this section if you have the actual data)
 # np.random.seed(0)
-# df = pd.DataFrame({
-#     'field1': np.random.normal(size=100),
-#     'field2': np.random.normal(size=100),
-#     'field1': np.random.normal(size=100),
-#     'field4': np.random.normal(size=100),
-#     'field5': np.random.normal(size=100),
+# routes_cover_s1 = pd.DataFrame({
+#     'TreesCover': np.random.normal(size=100),
+#     'BuildingsCover': np.random.normal(size=100),
+#     'BusinessCover': np.random.normal(size=100),
+#     'CemeteryCover': np.random.normal(size=100),
+#     'IndustrialCover': np.random.normal(size=100),
+#     'InfrastructureCover': np.random.normal(size=100),
+#     'ParksCover': np.random.normal(size=100),
+#     'PublicInstitutionCover': np.random.normal(size=100),
+#     'ResidenceCover': np.random.normal(size=100),
+#     'SportsCover': np.random.normal(size=100),
+#     'NearestJlmPoleDistance': np.random.normal(size=100),
+#     'Classification': np.random.choice(['HPS', 'LED'], size=100),
+#     'RoadsHierarchy': np.random.choice(['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'residential'], size=100),
+#     'lux_log10': np.random.poisson(lam=10, size=100)
 # })
 
-
 # One-hot encoding of categorical variables
-routes_cover_s1_encoded = pd.get_dummies(routes_cover_s1, columns=['field3', 'field4'], drop_first=True)
+routes_cover_s1_encoded = pd.get_dummies(routes_cover_s1, columns=['Classification', 'RoadsHierarchy'])
 
 # Define the model formula
-# Note: The categorical variables are now 'field3', 'field4' after one-hot encoding
-formula = 'field1 ~ field2 + field3 + field4 + field5'
+# Note: The categorical variables are now 'Classification_HPS', 'Classification_LED', 'RoadsHierarchy_motorway', 'RoadsHierarchy_primary', 'RoadsHierarchy_residential', 'RoadsHierarchy_secondary', 'RoadsHierarchy_tertiary', 'RoadsHierarchy_trunk' after one-hot encoding
+formula = 'lux_log10 ~ TreesCover + BuildingsCover + BusinessCover + CemeteryCover + IndustrialCover + InfrastructureCover + ParksCover + PublicInstitutionCover + ResidenceCover + SportsCover + NearestJlmPoleDistance + Classification_HPS + Classification_LED + RoadsHierarchy_motorway + RoadsHierarchy_primary + RoadsHierarchy_residential + RoadsHierarchy_secondary + RoadsHierarchy_tertiary + RoadsHierarchy_trunk'
 
 # Fit the model
-model = smf.glm(formula=formula, data=routes_cover_s1_encoded, family=sm.families.Gaussian()) # can be any other family
+model = smf.glm(formula=formula, data=routes_cover_s1_encoded, family=sm.families.Gaussian())
 result = model.fit()
 
 # Print the summary
@@ -34,20 +51,60 @@ llf = result.llf  # Log-likelihood of the fitted model
 llnull = result.llnull  # Log-likelihood of the null model
 pseudo_r2 = 1 - llf / llnull
 
+# Calculate the regular R-squared
+y = routes_cover_s1_encoded['lux_log10']
+y_pred = result.predict(routes_cover_s1_encoded)
+ss_res = np.sum((y - y_pred) ** 2)
+ss_tot = np.sum((y - np.mean(y)) ** 2)
+r_squared = 1 - (ss_res / ss_tot)
+
 # Predict the values
-df_encoded['predicted'] = result.predict(df)
+routes_cover_s1_encoded['predicted'] = y_pred
+
+lux_log10_seq = np.linspace(routes_cover_s1_encoded['lux_log10'].min(), routes_cover_s1_encoded['lux_log10'].max(), num=100)
+regression_data = pd.DataFrame({
+    'lux_log10': lux_log10_seq,
+    'TreesCover': np.mean(routes_cover_s1_encoded['TreesCover']),
+    'BuildingsCover': np.mean(routes_cover_s1_encoded['BuildingsCover']),
+    'BusinessCover': np.mean(routes_cover_s1_encoded['BusinessCover']),
+    'CemeteryCover': np.mean(routes_cover_s1_encoded['CemeteryCover']),
+    'IndustrialCover': np.mean(routes_cover_s1_encoded['IndustrialCover']),
+    'InfrastructureCover': np.mean(routes_cover_s1_encoded['InfrastructureCover']),
+    'ParksCover': np.mean(routes_cover_s1_encoded['ParksCover']),
+    'PublicInstitutionCover': np.mean(routes_cover_s1_encoded['PublicInstitutionCover']),
+    'ResidenceCover': np.mean(routes_cover_s1_encoded['ResidenceCover']),
+    'SportsCover': np.mean(routes_cover_s1_encoded['SportsCover']),
+    'NearestJlmPoleDistance': np.mean(routes_cover_s1_encoded['NearestJlmPoleDistance']),
+    'Classification_HPS': np.mean(routes_cover_s1_encoded['Classification_HPS']),
+    'Classification_LED': np.mean(routes_cover_s1_encoded['Classification_LED']),
+    'RoadsHierarchy_motorway': np.mean(routes_cover_s1_encoded['RoadsHierarchy_motorway']),
+    'RoadsHierarchy_primary': np.mean(routes_cover_s1_encoded['RoadsHierarchy_primary']),
+    'RoadsHierarchy_residential': np.mean(routes_cover_s1_encoded['RoadsHierarchy_residential']),
+    'RoadsHierarchy_secondary': np.mean(routes_cover_s1_encoded['RoadsHierarchy_secondary']),
+    'RoadsHierarchy_tertiary': np.mean(routes_cover_s1_encoded['RoadsHierarchy_tertiary']),
+    'RoadsHierarchy_trunk': np.mean(routes_cover_s1_encoded['RoadsHierarchy_trunk'])
+})
+
+regression_line = result.predict(regression_data)
 
 # Plot the actual vs. predicted values
 plt.figure(figsize=(10, 6))
-plt.scatter(df_encoded['field5'], df_encoded['field5'], color='blue', label='Actual Values')
-plt.scatter(df_encoded['field5'], df_encoded['predicted'], color='red', label='Predicted Values')
-plt.xlabel('Actual field5 value')
-plt.ylabel('Predicted field5 value')
-plt.legend()
+#plt.scatter(routes_cover_s1_encoded['lux_log10'], routes_cover_s1_encoded['lux_log10'], color='blue', label='Actual Values')
+#plt.scatter(routes_cover_s1_encoded['lux_log10'], routes_cover_s1_encoded['predicted'], color='red', label='Predicted Values')
+plt.scatter(routes_cover_s1_encoded['lux_log10'], routes_cover_s1_encoded['predicted'])
+#plt.plot(lux_log10_seq, regression_line, color='#C6C009', label='Regression Line')
+plt.xlabel('Actual Light intense (lux [log10])')
+plt.ylabel('Predicted Light intense (lux [log10])')
+a, b = np.polyfit(routes_cover_s1_encoded['lux_log10'], routes_cover_s1_encoded['predicted'], 1)
+plt.plot(routes_cover_s1_encoded['lux_log10'], a*routes_cover_s1_encoded['lux_log10']+b, color='#C6C009', label='Regression Line')
+
+#plt.legend()
 
 # Add R-squared to the plot
-plt.text(0.05, 0.95, f'McFadden\'s R-squared: {pseudo_r2:.4f}', transform=plt.gca().transAxes, 
+plt.text(0.05, 0.95, f'McFadden\'s R^2: {pseudo_r2:.4f}', transform=plt.gca().transAxes, 
          fontsize=12, verticalalignment='top', horizontalalignment='left')
 
-plt.title('GLM Poisson Regression: Actual vs Predicted Values with R-squared')
+plt.title('GLM Gaussian Regression on S1: Actual vs Predicted Values with R^2')
+plt.grid()
 plt.show()
+#plt.savefig('Multiple regression S1.png', dpi=300)
