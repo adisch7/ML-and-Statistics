@@ -65,14 +65,6 @@ import statsmodels.genmod as gm
 # plt.show()
 
 '''Second Version'''
-# # Read the CSV file
-# coefficient_df2 = pd.read_csv(r'C:\Users\Adi\Downloads\R table2 for Noam.csv')
-
-# # Convert specified columns to numeric, coercing errors to NaN
-# columns_to_convert = ['S1', 'S2+S4', 'S3+S5']
-# coefficient_df2[columns_to_convert] = coefficient_df2[columns_to_convert].apply(pd.to_numeric, errors='coerce')
-
-'''Validate second option'''
 # Coefficient plot with Standardized Coefficient
 
 # Read the CSV file
@@ -142,4 +134,5 @@ plt.title('GLM Coefficient Plot')
 plt.xlabel('Coefficient')
 plt.ylabel('Variable')
 plt.show()
+
 
